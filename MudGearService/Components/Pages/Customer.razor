@@ -46,7 +46,6 @@
         <MudIconButton Icon="@Icons.Material.Outlined.Add" OnClick="@CreateOrUpdateCustomer" />
         <MudIconButton Icon="@Icons.Material.Outlined.Edit" OnClick="@CreateOrUpdateCustomer" />
         <MudIconButton Icon="@Icons.Material.Outlined.Remove" OnClick="@DeleteCustomer" />
-
     </MudToolBar>
 
 </MudCard>
@@ -113,6 +112,8 @@
         }
         // Trigger a re-render of the MudDataGrid
         StateHasChanged();
+        await Task.Delay(3000);
+        ClearSelection();
     }
 
     //Create
@@ -174,9 +175,6 @@
                     .Set(x => x.Country, Country)
                     .Update();
 
-                // NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Success", Detail = "Customer updated successful" });
-
-                //Clear the strings
 
                 await LoadCustomers();
             }
@@ -230,6 +228,8 @@
 
     private void ClearSelection()
     {
+        showAddSuccess = false;
+        showAddError = false;
         //empty all strings
         ID = 0;
         CustomerName = string.Empty;
