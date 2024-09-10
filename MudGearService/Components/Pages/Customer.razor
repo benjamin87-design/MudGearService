@@ -1,0 +1,242 @@
+﻿@page "/customer"
+@using System.Collections.ObjectModel
+
+<PageTitle>Customer</PageTitle>
+
+<MudText Typo="Typo.h3" GutterBottom="true">Customer</MudText>
+
+@*Input section for customer data*@
+<MudCard>
+    
+    @if (showAddSuccess != false)
+    {
+        <MudAlert Severity="Severity.Success" > Customer added successfuly! </MudAlert>
+    }
+    @if (showAddError != false)
+    {
+        <MudAlert Severity="Severity.Error" > @exMessage </MudAlert>
+    }
+
+    <MudCardContent>
+        <MudGrid>
+            <MudItem xs="12" md="6">
+                <MudTextField Label="Customer name" @bind-Value="CustomerName" />
+            </MudItem>
+            <MudItem xs="12" md="6">
+                <MudTextField Label="Street name" @bind-Value="StreetName" />
+            </MudItem>
+            <MudItem xs="12" md="6">
+                <MudTextField Label="Street number" @bind-Value="StreetNumber" />
+            </MudItem>
+            <MudItem xs="12" md="6">
+                <MudTextField Label="ZIP code" @bind-Value="ZIPCode" />
+            </MudItem>
+            <MudItem xs="12" md="6">
+                <MudTextField Label="City" @bind-Value="City" />
+            </MudItem>
+            <MudItem xs="12" md="6">
+                <MudTextField Label="Country" @bind-Value="Country" />
+            </MudItem>
+        </MudGrid>
+    </MudCardContent>
+
+    <div style="height: 16px;"></div>
+
+    <MudToolBar>
+        <MudIconButton Icon="@Icons.Material.Outlined.Add" OnClick="@CreateOrUpdateCustomer" />
+        <MudIconButton Icon="@Icons.Material.Outlined.Edit" OnClick="@CreateOrUpdateCustomer" />
+        <MudIconButton Icon="@Icons.Material.Outlined.Remove" OnClick="@DeleteCustomer" />
+
+    </MudToolBar>
+
+</MudCard>
+
+<div style="height: 16px;"></div>
+
+<MudCard>
+    <MudCardContent>
+        <MudGrid>
+            <MudItem xs="12">
+                <MudDataGrid Items="@_customerList" MultiSelection="false" SelectedItem="@_selectedCustomer" SelectedItemChanged="@CustomerSelectionChanged" T="CustomerModel">
+                    <Columns>
+                        <PropertyColumn Property="x => x.CustomerName" Title="Customer Name" />
+                        <PropertyColumn Property="x => x.StreetName" Title="Street Name" />
+                        <PropertyColumn Property="x => x.StreetNumber" Title="Street Number" />
+                        <PropertyColumn Property="x => x.ZIPCode" Title="ZIP Code" />
+                        <PropertyColumn Property="x => x.City" Title="City" />
+                        <PropertyColumn Property="x => x.Country" Title="Country" />
+                    </Columns>
+                </MudDataGrid>
+            </MudItem>
+        </MudGrid>
+    </MudCardContent>
+</MudCard>
+
+@code {
+    //Strings
+    private int ID { get; set; }
+    private string CustomerName { get; set; }
+    private string StreetName { get; set; }
+    private string StreetNumber { get; set; }
+    private string ZIPCode { get; set; }
+    private string City { get; set; }
+    private string Country { get; set; }
+
+    private string exMessage{ get; set; }
+    private bool showAddSuccess = false;
+    private bool showAddError = false;
+
+    //supabase client
+    private Supabase.Client supabase;
+
+    protected override void OnInitialized()
+    {
+        supabase = new Supabase.Client("https://uxgxzfhyhzhrjboxjcrz.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV4Z3h6Zmh5aHpocmpib3hqY3J6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjU0MTQ5NTIsImV4cCI6MjA0MDk5MDk1Mn0.cevff5000JUf4r0QE7Xij2viCdJhE-u1x8HbqPD8SK8");
+        LoadCustomers();
+    }
+
+
+    //list
+    ObservableCollection<CustomerModel> _customerList = new ObservableCollection<CustomerModel>();
+    CustomerModel _selectedCustomer;
+
+    //Load
+    private async Task LoadCustomers()
+    {
+        var result = await supabase.From<CustomerModel>().Get();
+
+        _customerList.Clear();
+        foreach (var customer in result.Models)
+        {
+            //add customers to list
+            _customerList.Add(customer);
+        }
+        // Trigger a re-render of the MudDataGrid
+        StateHasChanged();
+    }
+
+    //Create
+    async Task CreateOrUpdateCustomer()
+    {
+        if (ID == 0)
+        {
+            var insertCustomer = new CustomerModel
+                {
+                    CustomerName = CustomerName,
+                    StreetName = StreetName,
+                    StreetNumber = StreetNumber,
+                    ZIPCode = ZIPCode,
+                    City = City,
+                    Country = Country
+                };
+
+            try
+            {
+                var insertResult = await supabase
+                .From<CustomerModel>()
+                .Insert(insertCustomer);
+
+                showAddSuccess = true;
+
+                //clear all strings
+
+                await LoadCustomers();
+            }
+            catch (Exception ex)
+            {
+                exMessage = ex.Message.ToString();
+                showAddError = true;
+            }
+        }
+        else
+        {
+            var updateCustomer = new CustomerModel
+                {
+                    ID = ID,
+                    CustomerName = CustomerName,
+                    StreetName = StreetName,
+                    StreetNumber = StreetNumber,
+                    ZIPCode = ZIPCode,
+                    City = City,
+                    Country = Country
+                };
+
+            try
+            {
+                var update = await supabase
+                    .From<CustomerModel>()
+                    .Where(x => x.ID == ID)
+                    .Set(x => x.CustomerName, CustomerName)
+                    .Set(x => x.StreetName, StreetName)
+                    .Set(x => x.StreetNumber, StreetNumber)
+                    .Set(x => x.ZIPCode, ZIPCode)
+                    .Set(x => x.City, City)
+                    .Set(x => x.Country, Country)
+                    .Update();
+
+                // NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Success", Detail = "Customer updated successful" });
+
+                //Clear the strings
+
+                await LoadCustomers();
+            }
+            catch (Exception ex)
+            {
+                // await Shell.Current.DisplayAlert("Error", ex.Message, "Ok");
+            }
+        }
+    }
+
+    private async Task DeleteCustomer()
+    {
+        if (ID != 0)
+        {
+            try
+            {
+                await supabase
+                    .From<CustomerModel>()
+                    .Where(x => x.ID == ID)
+                    .Delete();
+                // NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Success", Detail = "Customer deleted successful" });
+
+                await LoadCustomers();
+
+                ClearSelection();
+            }
+            catch (Exception ex)
+            {
+                // NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error", Detail = ex.Message });
+            }
+        }
+        else
+        {
+            // NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error", Detail = "No customer selected" });
+        }
+    }
+
+    private void CustomerSelectionChanged(CustomerModel selectedCustomer)
+    {
+        if (selectedCustomer != null)
+        {
+            ID = selectedCustomer.ID;
+            CustomerName = selectedCustomer.CustomerName;
+            StreetName = selectedCustomer.StreetName;
+            StreetNumber = selectedCustomer.StreetNumber;
+            ZIPCode = selectedCustomer.ZIPCode;
+            City = selectedCustomer.City;
+            Country = selectedCustomer.Country;
+        }
+    }
+
+    private void ClearSelection()
+    {
+        //empty all strings
+        ID = 0;
+        CustomerName = string.Empty;
+        StreetName = string.Empty;
+        StreetNumber = string.Empty;
+        ZIPCode = string.Empty;
+        City = string.Empty;
+        Country = string.Empty;
+    }
+}
