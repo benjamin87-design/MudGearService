@@ -1,6 +1,8 @@
 ﻿@page "/userlogin"
 @using System.ComponentModel.DataAnnotations
 
+@*Injections*@
+
 @inject AppState AppState
 @inject ISessionStorageService SessionStorage
 @inject NavigationManager NavigationManager
@@ -14,9 +16,9 @@
         <MudItem>
             <MudCard style="height: 400px; background-color: darkslateblue" Square="true">
                 <MudCardContent>
-                    <MudText Typo="Typo.h4" GutterBottom="true">Welcome to my Application!</MudText>
-                    <div style="height: 10px;"></div>
-                    <MudText Typo="Typo.h5" GutterBottom="true">Live and Learn: Discover, Evolve, Thrive</MudText>
+                    <MudText Typo="Typo.h4" GutterBottom="true" style="color: #c1c1c4;">Welcome to my Application!</MudText>
+                    <div style="height: 16px;"></div>
+                    <MudText Typo="Typo.h5" GutterBottom="true" style="color: #c1c1c4;">Live and Learn: Discover, Evolve, Thrive</MudText>
                 </MudCardContent>
             </MudCard>
         </MudItem>
@@ -29,7 +31,7 @@
                     <MudTextField @bind-Value="UserEmail" Label="Email" Variant="Variant.Text"></MudTextField>
                     <div style="height: 10px;"></div>
                     <MudTextField @bind-Value="UserPassword" InputType="@PasswordInput" Label="Password" Variant="Variant.Text"></MudTextField>
-                    <div style="height: 10px;"></div>
+                    <div style="height: 16px;"></div>
                     <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OnLogin">Login</MudButton>
                     <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="OnRegister">Register</MudButton>
                 </MudCardContent>
@@ -42,6 +44,9 @@
 
     private string UserEmail;
     private string UserPassword;
+    private string textColor;
+    
+    //Password hide
     bool isShow;
     InputType PasswordInput = InputType.Password;
     string PasswordInputIcon = Icons.Material.Filled.VisibilityOff;
