@@ -1,7 +1,43 @@
 ﻿@page "/user"
 
-<h1>User setting</h1>
+<PageTitle>User Information</PageTitle>
+
+<MudText Typo="Typo.h3" GutterBottom="true">User informations</MudText>
+
+<MudCard>
+    <MudCardContent>
+        <MudGrid>
+            <MudItem xs="12" md="6">
+                <MudField Label="User Name" Variant="Variant.Text"> @UserFamilyName @UserGivenName </MudField>
+            </MudItem>
+            <MudItem xs="12" md="6">
+                <MudField Label="Email" Variant="Variant.Text"> @Email </MudField>
+            </MudItem>
+            <MudItem xs="12" md="6">
+                <MudTextField Label="Phone Number" Value="@PhoneNumber" ReadOnly="true" />
+            </MudItem>
+            <MudItem xs="12" md="6">
+                <MudTextField Label="Address" Value="@Address" ReadOnly="true" />
+            </MudItem>
+        </MudGrid>
+    </MudCardContent>
+</MudCard>
 
 @code {
+    private string UserFamilyName = "Doe";
+    private string UserGivenName = "John";
+    private string Email = "john.doe@example.com";
+    private string PhoneNumber = "+1234567890";
+    private string Address = "123 Main St, Anytown, USA";
 
+    private int ID { get; set; }
+    // private string? UserFamilyName{ get; set; }
+    // private string? UserGivenName{ get; set; }
+    private string? UserPhone{ get; set; }
+    private string? UserEmail{ get; set; }
+    private string? UserStreetName{ get; set; }
+    private string? UserStreetNumber{ get; set; }
+    private string? UserZIPCode{get;set;}
+    private string? UserCity{ get; set; }
+    private string? UserCountry{ get; set; }
 }

@@ -12,19 +12,19 @@ namespace MudGearService.Models
 		[Column("CustomerName")]
 		public string CustomerName { get; set; }
 
-		[Column("StreetName")]
+		[Column("UserStreetName")]
 		public string StreetName { get; set; }
 
-		[Column("StreetNumber")]
+		[Column("UserStreetNumber")]
 		public string StreetNumber { get; set; }
 
-		[Column("ZIPCode")]
+		[Column("UserZIPCode")]
 		public string ZIPCode { get; set; }
 
-		[Column("City")]
+		[Column("UserCity")]
 		public string City { get; set; }
 
-		[Column("Country")]
+		[Column("UserCountry")]
 		public string Country { get; set; }
 	}
 

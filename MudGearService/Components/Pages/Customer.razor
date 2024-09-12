@@ -67,7 +67,7 @@
         </MudGrid>
     </MudCardContent>
 
-    <div style="height: 16px;"></div>
+    <MudDivider Class="mb-4" />
 
     @*Datagrid showing customerdata from supabase database*@
     <MudToolBar>
@@ -102,14 +102,14 @@
 @code {
     //Strings
     private int ID { get; set; }
-    private string CustomerName { get; set; }
-    private string StreetName { get; set; }
-    private string StreetNumber { get; set; }
-    private string ZIPCode { get; set; }
-    private string City { get; set; }
-    private string Country { get; set; }
+    private string? CustomerName { get; set; }
+    private string? StreetName { get; set; }
+    private string? StreetNumber { get; set; }
+    private string? ZIPCode { get; set; }
+    private string? City { get; set; }
+    private string? Country { get; set; }
 
-    private string exMessage{ get; set; }
+    private string? exMessage{ get; set; }
 
     //Add messages
     private bool showAddSuccess = false;
@@ -126,10 +126,10 @@
     //supabase client
     private Supabase.Client supabase;
 
-    protected override void OnInitialized()
+    protected async override void OnInitialized()
     {
         supabase = new Supabase.Client("https://uxgxzfhyhzhrjboxjcrz.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV4Z3h6Zmh5aHpocmpib3hqY3J6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjU0MTQ5NTIsImV4cCI6MjA0MDk5MDk1Mn0.cevff5000JUf4r0QE7Xij2viCdJhE-u1x8HbqPD8SK8");
-        LoadCustomers();
+        await LoadCustomers();
     }
 
 
