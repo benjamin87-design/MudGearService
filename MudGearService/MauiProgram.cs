@@ -1,6 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Blazored.SessionStorage;
+using Microsoft.Extensions.Logging;
 using MudBlazor;
 using MudBlazor.Services;
+using MudGearService.Interfaces;
 
 namespace MudGearService
 {
@@ -29,6 +31,8 @@ namespace MudGearService
                 config.SnackbarConfiguration.ShowTransitionDuration = 500;
                 config.SnackbarConfiguration.SnackbarVariant = Variant.Filled;
             });
+            builder.Services.AddBlazoredSessionStorage();
+            builder.Services.AddSingleton<AppState>();
 
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();

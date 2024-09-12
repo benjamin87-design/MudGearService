@@ -1,9 +1,32 @@
-﻿<MudNavMenu>
-    <MudNavLink Href="/" Match="NavLinkMatch.All">Home</MudNavLink>
-    <MudNavLink Href="/customer" Match="NavLinkMatch.Prefix">Customer</MudNavLink>
-    <MudNavGroup Title="Settings" Expanded="true">
-        <MudNavLink Href="/user" Match="NavLinkMatch.Prefix">Users</MudNavLink>
-        <MudNavLink Href="/security" Match="NavLinkMatch.Prefix">Security</MudNavLink>
-    </MudNavGroup>
+﻿@*Injections*@
+@inject AppState AppState
+@implements IDisposable
+@inject ISessionStorageService SessionStorage
+
+<MudNavMenu>
+    @if (AppState.LoggedIn == true) //change back to true after finish the application or for testing
+    {
+        <MudNavLink Href="/" Match="NavLinkMatch.All">Home</MudNavLink>
+        <MudNavLink Href="/customer" Match="NavLinkMatch.Prefix">Customer</MudNavLink>
+        <MudNavGroup Title="Settings" Expanded="true">
+            <MudNavLink Href="/user" Match="NavLinkMatch.Prefix">Users</MudNavLink>
+            <MudNavLink Href="/security" Match="NavLinkMatch.Prefix">Security</MudNavLink>
+        </MudNavGroup>
+    }
+
+    <MudNavLink Href="/userlogin" Match="NavLinkMatch.Prefix">Login</MudNavLink>
     <MudNavLink Href="/about" Match="NavLinkMatch.Prefix">About</MudNavLink>
 </MudNavMenu>
+
+@code{
+    // Dispose method for login
+    protected override void OnInitialized()
+    {
+        AppState.OnChange += StateHasChanged;
+    }
+
+    public async void Dispose()
+    {
+        AppState.OnChange -= StateHasChanged;
+    }
+}

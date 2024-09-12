@@ -1,0 +1,130 @@
+﻿@page "/userlogin"
+@using System.ComponentModel.DataAnnotations
+
+@inject AppState AppState
+@inject ISessionStorageService SessionStorage
+@inject NavigationManager NavigationManager
+
+<PageTitle>Login</PageTitle>
+
+<MudText Typo="Typo.h3" GutterBottom="true">Login</MudText>
+
+<MudPaper Class="d-flex flex-wrap gap-0" MaxWidth="900px" Elevation="0">
+    <MudPaper Class="mud-theme-primary" Square="true" Width="450px" Height="400px" >
+        <MudItem>
+            <MudCard style="height: 400px; background-color: darkslateblue" Square="true">
+                <MudCardContent>
+                    <MudText Typo="Typo.h4" GutterBottom="true">Welcome to my Application!</MudText>
+                    <div style="height: 10px;"></div>
+                    <MudText Typo="Typo.h5" GutterBottom="true">Live and Learn: Discover, Evolve, Thrive</MudText>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+    </MudPaper>
+
+    <MudPaper Class="mud-theme-primary" Square="true" Width="450px" Height="400px" >
+        <MudItem>
+            <MudCard style="height: 400px;" Square="true">
+                <MudCardContent>
+                    <MudTextField @bind-Value="UserEmail" Label="Email" Variant="Variant.Text"></MudTextField>
+                    <div style="height: 10px;"></div>
+                    <MudTextField @bind-Value="UserPassword" InputType="@PasswordInput" Label="Password" Variant="Variant.Text"></MudTextField>
+                    <div style="height: 10px;"></div>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OnLogin">Login</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="OnRegister">Register</MudButton>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+    </MudPaper>
+</MudPaper>
+
+@code {
+
+    private string UserEmail;
+    private string UserPassword;
+    bool isShow;
+    InputType PasswordInput = InputType.Password;
+    string PasswordInputIcon = Icons.Material.Filled.VisibilityOff;
+
+    private Supabase.Client supabase;
+
+    protected override void OnInitialized()
+    {
+        supabase = new Supabase.Client("https://uxgxzfhyhzhrjboxjcrz.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV4Z3h6Zmh5aHpocmpib3hqY3J6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjU0MTQ5NTIsImV4cCI6MjA0MDk5MDk1Mn0.cevff5000JUf4r0QE7Xij2viCdJhE-u1x8HbqPD8SK8");
+    }
+
+    public async Task OnLogin()
+    {
+        try
+        {
+            var response = await supabase.Auth.SignIn(UserEmail, UserPassword);
+
+            //save username to session storage
+            await SessionStorage.SetItemAsync("useremail", UserEmail);
+
+            //notify user about success
+            // NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Success", Detail = "Login successful" });
+            
+            //change app state and load menu items
+            AppState.LoggedIn = true;
+
+            //Set Username from NavMenu to the logged in user
+            AppState.UserEmail = UserEmail.ToString();
+
+            //empty the strings
+            UserEmail = "";
+            UserPassword = "";
+
+            //navigate to home
+            NavigationManager.NavigateTo("/");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+
+            // NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error , Summary = "Error", Detail = "Wrong E-mail or password" });
+        }
+    } 
+
+    public async Task OnRegister()
+    {
+        if (UserEmail == null || UserPassword == null)
+        {
+            // NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error", Detail = "Please fill all textboxes" });
+            return;
+        }
+        else if (!IsValidEmail(UserEmail))
+        {
+            // NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error", Detail = "Invalide E-mail" });
+            return;
+        }
+        else
+        {
+            try
+            {
+                var session = await supabase.Auth.SignUp(UserEmail, UserPassword);
+                // NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Success", Detail = "Register successful" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+
+                // NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error", Detail = "Register not possible" });
+            }
+        }
+    }
+
+    private bool IsValidEmail(string email)
+    {
+        try
+        {
+            var addr = new System.Net.Mail.MailAddress(email);
+            return addr.Address == email;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+}
+
