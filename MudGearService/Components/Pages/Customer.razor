@@ -1,5 +1,10 @@
 ﻿@page "/customer"
+
+@*Usings*@
 @using System.Collections.ObjectModel
+
+@*Injections*@
+@inject ISnackbar Snackbar
 
 <PageTitle>Customer</PageTitle>
 
@@ -8,15 +13,37 @@
 @*Input section for customer data*@
 <MudCard>
     
+    @*Error messages*@
     @if (showAddSuccess != false)
     {
-        <MudAlert Severity="Severity.Success" > Customer added successfuly! </MudAlert>
+        <MudAlert Severity="Severity.Success" ContentAlignment="HorizontalAlignment.Center" ShowCloseIcon="true" CloseIconClicked="(() => CloseMe(false))">Customer added successfuly!</MudAlert>
     }
     @if (showAddError != false)
     {
-        <MudAlert Severity="Severity.Error" > @exMessage </MudAlert>
+        <MudAlert Severity="Severity.Error" ContentAlignment="HorizontalAlignment.Center" ShowCloseIcon="true" CloseIconClicked="(() => CloseMe(false))">Something went wrong</MudAlert>
     }
+    @if (showUpdateSuccess != false)
+	{
+        <MudAlert Severity="Severity.Success" ContentAlignment="HorizontalAlignment.Center" ShowCloseIcon="true" CloseIconClicked="(() => CloseMe(false))">Customer updated successfuly!</MudAlert>
+	}
+    @if (showUpdateError != false)
+    {
+        <MudAlert Severity="Severity.Error" ContentAlignment="HorizontalAlignment.Center" ShowCloseIcon="true" CloseIconClicked="(() => CloseMe(false))">Something went wrong</MudAlert>
+	}
+    @if (showDeleteSuccess != false)
+	{
+        <MudAlert Severity="Severity.Success" ContentAlignment="HorizontalAlignment.Center" ShowCloseIcon="true" CloseIconClicked="(() => CloseMe(false))">Customer deleted successfuly!</MudAlert>
+	}
+    @if (showDeleteError != false)
+	{
+        <MudAlert Severity="Severity.Error" ContentAlignment="HorizontalAlignment.Center" ShowCloseIcon="true" CloseIconClicked="(() => CloseMe(false))">Something went wrong</MudAlert>
+	}
+    @if (showNoCustomerSelected != false)
+    {
+        <MudAlert Severity="Severity.Error" ContentAlignment="HorizontalAlignment.Center" ShowCloseIcon="true" CloseIconClicked="(() => CloseMe(false))">No Customer selected!</MudAlert>
+	}
 
+    @*Inputform for Customer*@
     <MudCardContent>
         <MudGrid>
             <MudItem xs="12" md="6">
@@ -42,6 +69,7 @@
 
     <div style="height: 16px;"></div>
 
+    @*Datagrid showing customerdata from supabase database*@
     <MudToolBar>
         <MudIconButton Icon="@Icons.Material.Outlined.Add" OnClick="@CreateOrUpdateCustomer" />
         <MudIconButton Icon="@Icons.Material.Outlined.Edit" OnClick="@CreateOrUpdateCustomer" />
@@ -82,8 +110,18 @@
     private string Country { get; set; }
 
     private string exMessage{ get; set; }
+
+    //Add messages
     private bool showAddSuccess = false;
     private bool showAddError = false;
+    //Update messages
+    private bool showUpdateSuccess = false;
+    private bool showUpdateError = false;
+    //Delete messages
+    private bool showDeleteSuccess = false;
+    private bool showDeleteError = false;
+    //Selection message
+    private bool showNoCustomerSelected = false;
 
     //supabase client
     private Supabase.Client supabase;
@@ -112,7 +150,6 @@
         }
         // Trigger a re-render of the MudDataGrid
         StateHasChanged();
-        await Task.Delay(3000);
         ClearSelection();
     }
 
@@ -175,12 +212,14 @@
                     .Set(x => x.Country, Country)
                     .Update();
 
+                showUpdateSuccess = true;
 
                 await LoadCustomers();
             }
             catch (Exception ex)
             {
-                // await Shell.Current.DisplayAlert("Error", ex.Message, "Ok");
+                exMessage = ex.Message.ToString();
+                showUpdateError = true;
             }
         }
     }
@@ -195,7 +234,8 @@
                     .From<CustomerModel>()
                     .Where(x => x.ID == ID)
                     .Delete();
-                // NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Success", Detail = "Customer deleted successful" });
+
+                showDeleteSuccess = true;
 
                 await LoadCustomers();
 
@@ -203,12 +243,13 @@
             }
             catch (Exception ex)
             {
-                // NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error", Detail = ex.Message });
+                exMessage = ex.Message.ToString();
+                showDeleteError = true;
             }
         }
         else
         {
-            // NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error", Detail = "No customer selected" });
+            showNoCustomerSelected = true;
         }
     }
 
@@ -228,8 +269,6 @@
 
     private void ClearSelection()
     {
-        showAddSuccess = false;
-        showAddError = false;
         //empty all strings
         ID = 0;
         CustomerName = string.Empty;
@@ -238,5 +277,22 @@
         ZIPCode = string.Empty;
         City = string.Empty;
         Country = string.Empty;
+    }
+
+    private void CloseMe(bool value)
+    {
+        if (value)
+        {
+            showAddError = false;
+            showUpdateError = false;
+            showDeleteError = false;
+            showNoCustomerSelected = false;
+        }
+        else
+        {
+            showAddSuccess = false;
+            showUpdateSuccess = false;
+            showDeleteSuccess = false;
+        }
     }
 }
