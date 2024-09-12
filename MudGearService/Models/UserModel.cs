@@ -15,7 +15,7 @@ namespace MudGearService.Models
         public int ID { get; set; }
 
         [Column("UserFamilyName")]
-        public string UserName { get; set; }
+        public string UserFamilyName { get; set; }
 
         [Column("UserGivenName")]
         public string UserGivenName { get; set; }
