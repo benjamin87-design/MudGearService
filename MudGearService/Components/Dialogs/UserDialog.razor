@@ -1,41 +1,44 @@
 ﻿@*Injections*@
 @inject ISessionStorageService SessionStorage
 
-<MudDialog Style="height: 750px; width: 400px;">
-    <DialogContent>
-        <MudButton Variant="Variant.Filled"
-                           Color="Color.Primary"
-                           StartIcon="@Icons.Material.Filled.Upload">
-                    Upload Profil Picture
-                </MudButton>
+<MudContainer>
+    @if (isLoading)
+    {
+        <MudDialog Style="height: 750px; width: 400px;">
+            <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
+        </MudDialog>
+    }
+    else
+    {
+        <MudDialog Style="height: 750px; width: 400px;">
+            <DialogContent>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Upload">Upload Profil Picture</MudButton>
+                <div style="height: 16px;"></div>
+                <MudTextField @bind-Value="UserFamilyName" Label="Family Name" Variant="Variant.Text"></MudTextField>
+                <div style="height: 10px;"></div>
+                <MudTextField @bind-Value="UserGivenName" Label="Given Name" Variant="Variant.Text"></MudTextField>
+                <div style="height: 10px;"></div>
+                <MudTextField @bind-Value="UserPhone" Label="Phone Number" Variant="Variant.Text"></MudTextField>
+                <div style="height: 10px;"></div>
+                <MudTextField @bind-Value="UserEmail" Label="Email Adress" Variant="Variant.Text"></MudTextField>
+                <div style="height: 10px;"></div>
+                <MudTextField @bind-Value="UserStreetName" Label="Street Name" Variant="Variant.Text"></MudTextField>
+                <div style="height: 10px;"></div>
+                <MudTextField @bind-Value="UserStreetNumber" Label="Street Number" Variant="Variant.Text"></MudTextField>
+                <div style="height: 10px;"></div>
+                <MudTextField @bind-Value="UserZIPCode" Label="ZIP Code" Variant="Variant.Text"></MudTextField>
+                <div style="height: 10px;"></div>
+                <MudTextField @bind-Value="UserCity" Label="City" Variant="Variant.Text"></MudTextField>
+                <div style="height: 10px;"></div>
+                <MudTextField @bind-Value="UserCountry" Label="Country" Variant="Variant.Text"></MudTextField>
+            </DialogContent>
 
-        <div style="height: 16px;"></div>
-
-        <MudTextField @bind-Value="UserFamilyName" Label="Family Name" Variant="Variant.Text"></MudTextField>
-        <div style="height: 10px;"></div>
-        <MudTextField @bind-Value="UserGivenName" Label="Given Name" Variant="Variant.Text"></MudTextField>
-        <div style="height: 10px;"></div>
-        <MudTextField @bind-Value="UserPhone" Label="Phone Number" Variant="Variant.Text"></MudTextField>
-        <div style="height: 10px;"></div>
-        <MudTextField @bind-Value="UserEmail" Label="Email Adress" Variant="Variant.Text"></MudTextField>
-        <div style="height: 10px;"></div>
-        <MudTextField @bind-Value="UserStreetName" Label="Street Name" Variant="Variant.Text"></MudTextField>
-        <div style="height: 10px;"></div>
-        <MudTextField @bind-Value="UserStreetNumber" Label="Street Number" Variant="Variant.Text"></MudTextField>
-        <div style="height: 10px;"></div>
-        <MudTextField @bind-Value="UserZIPCode" Label="ZIP Code" Variant="Variant.Text"></MudTextField>
-        <div style="height: 10px;"></div>
-        <MudTextField @bind-Value="UserCity" Label="City" Variant="Variant.Text"></MudTextField>
-        <div style="height: 10px;"></div>
-        <MudTextField @bind-Value="UserCountry" Label="Country" Variant="Variant.Text"></MudTextField>
-
-    </DialogContent>
-
-    <DialogActions>
-        <MudButton Color="Color.Primary">Save</MudButton>
-    </DialogActions>
-
-</MudDialog>
+            <DialogActions>
+                <MudButton OnClick="@Save" Color="Color.Primary">Save</MudButton>
+            </DialogActions>
+        </MudDialog>
+    }
+</MudContainer>
 
 @code {
     private int ID { get; set; }
@@ -50,10 +53,73 @@
     private string? UserCountry { get; set; }
     private string? UserProfilImage { get; set; }
 
+    private bool isLoading = true;
+
     private string ProfilPicName{ get; set; }
     private string ProfilePicPath{ get; set; }
 
     [CascadingParameter]
     private MudDialogInstance MudDialog { get; set; }
 
+
+    //supabase client
+    private Supabase.Client supabase;
+
+    private ObservableCollection<UserModel> Users;
+
+    protected async override void OnInitialized()
+    {
+        supabase = new Supabase.Client("https://uxgxzfhyhzhrjboxjcrz.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV4Z3h6Zmh5aHpocmpib3hqY3J6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjU0MTQ5NTIsImV4cCI6MjA0MDk5MDk1Mn0.cevff5000JUf4r0QE7Xij2viCdJhE-u1x8HbqPD8SK8");
+        Users = new ObservableCollection<UserModel>();
+        UserEmail = await SessionStorage.GetItemAsync<string>("useremail");
+        try
+        {
+            await LoadUser();
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    //Load user data inkl Profile picture
+    private async Task LoadUser()
+    {
+
+        var user = await supabase.From<UserModel>()
+        .Where(x => x.UserEmail == UserEmail)
+        .Single(); // Retrieve a single user matching the condition
+
+        if(user != null)
+        {
+            ID = user.ID;
+            UserFamilyName = user.UserFamilyName;
+            UserGivenName = user.UserGivenName;
+            UserPhone = user.UserPhone;
+            UserEmail = user.UserEmail;
+            UserStreetName = user.UserStreetName;
+            UserStreetNumber = user.UserStreetNumber;
+            UserZIPCode = user.UserZIPCode;
+            UserCity = user.UserCity;
+            UserCountry = user.UserCountry;
+        }
+        
+        StateHasChanged();
+    }
+
+    //Save or update the user. also upload the selected picture to UserProfilePic in Supabase
+    private async Task Save()
+    {
+        if(ID != null)
+        {
+            //Update the user and pic
+
+        }
+        else
+        {
+            //Create a new user 
+
+        }
+    }
 }

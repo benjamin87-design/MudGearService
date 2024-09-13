@@ -10,9 +10,7 @@
 <MudContainer>
     @if (isLoading)
     {
-        <div style="display: flex; justify-content: center; align-items: center; height: 100vh;">
-            <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
-        </div>
+        <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
     }
     else
     {
@@ -95,16 +93,18 @@
         .Where(x => x.UserEmail == UserEmail)
         .Single(); // Retrieve a single user matching the condition
 
-        UserFamilyName = user.UserFamilyName;
-        UserGivenName = user.UserGivenName;
-        UserPhone = user.UserPhone;
-        UserEmail = user.UserEmail;
-        UserStreetName = user.UserStreetName;
-        UserStreetNumber = user.UserStreetNumber;
-        UserZIPCode = user.UserZIPCode;
-        UserCity = user.UserCity;
-        UserCountry = user.UserCountry;
-
+        if(user != null)
+        {
+            UserFamilyName = user.UserFamilyName;
+            UserGivenName = user.UserGivenName;
+            UserPhone = user.UserPhone;
+            UserEmail = user.UserEmail;
+            UserStreetName = user.UserStreetName;
+            UserStreetNumber = user.UserStreetNumber;
+            UserZIPCode = user.UserZIPCode;
+            UserCity = user.UserCity;
+            UserCountry = user.UserCountry;
+        }
 
         //stream the user profile pic from supabase bucket
         var bucketName = "UserProfilePic";
