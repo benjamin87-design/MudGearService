@@ -1,16 +1,13 @@
-﻿@using System.Collections.ObjectModel
+﻿@*Injections*@
+@inject ISessionStorageService SessionStorage
 
 <MudDialog Style="height: 750px; width: 400px;">
     <DialogContent>
-        <MudFileUpload T="IBrowserFile" FilesChanged="UploadFiles">
-            <ActivatorContent>
-                <MudButton Variant="Variant.Filled"
+        <MudButton Variant="Variant.Filled"
                            Color="Color.Primary"
                            StartIcon="@Icons.Material.Filled.Upload">
                     Upload Profil Picture
                 </MudButton>
-            </ActivatorContent>
-        </MudFileUpload>
 
         <div style="height: 16px;"></div>
 
@@ -35,7 +32,7 @@
     </DialogContent>
 
     <DialogActions>
-        <MudButton Color="Color.Primary" OnClick="Ok">Save</MudButton>
+        <MudButton Color="Color.Primary">Save</MudButton>
     </DialogActions>
 
 </MudDialog>
@@ -59,66 +56,4 @@
     [CascadingParameter]
     private MudDialogInstance MudDialog { get; set; }
 
-    //List
-    private ObservableCollection<UserModel> Users;
-
-    //supabase client
-    private Supabase.Client supabase;
-
-    protected async override void OnInitialized()
-    {
-        supabase = new Supabase.Client("https://uxgxzfhyhzhrjboxjcrz.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV4Z3h6Zmh5aHpocmpib3hqY3J6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjU0MTQ5NTIsImV4cCI6MjA0MDk5MDk1Mn0.cevff5000JUf4r0QE7Xij2viCdJhE-u1x8HbqPD8SK8");
-        await LoadUser();
-    }
-
-    //Load user data from supabase
-    private async Task LoadUser()
-    {
-        var result = await supabase.From<UserModel>().Get();
-        Users.Clear();
-        foreach (var users in result.Models)
-        {
-            Users.Add(users);
-        }
-
-        //Securestorage useremail saved after login 
-        var userEmail = Preferences.Get("email", "");
-
-        var user = Users.Where(x => x.UserEmail == UserEmail).FirstOrDefault();
-
-        if (user != null)
-        {
-            UserFamilyName = user.UserFamilyName;
-            UserStreetName = user.UserStreetName;
-            UserStreetNumber = user.UserStreetNumber;
-            UserZIPCode = user.UserZIPCode;
-            UserCity = user.UserCity;
-            UserCountry = user.UserCountry;
-            UserPhone = user.UserPhone;
-            UserEmail = user.UserEmail;
-            ID = user.ID;
-        }
-        else
-        {
-            UserEmail = userEmail;
-            ID = ID;
-        }
-
-
-    }
-
-    //file upload
-    IList<IBrowserFile> _files = new List<IBrowserFile>();
-    private void UploadFiles(IBrowserFile file)
-    {
-        _files.Add(file);
-        //TODO upload the files to supabase bucket
-    }
-
-    //Save data to supabase
-    private void Ok()
-    {
-
-        MudDialog.Close(DialogResult.Ok(true));
-    }
 }

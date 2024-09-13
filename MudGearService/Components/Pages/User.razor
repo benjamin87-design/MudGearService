@@ -2,71 +2,121 @@
 
 @*Injections*@
 @inject IDialogService DialogService
+@inject ISessionStorageService SessionStorage
 
 <PageTitle>User Information</PageTitle>
 
 <MudText Typo="Typo.h3" GutterBottom="true">User informations</MudText>
+<MudContainer>
+    @if (isLoading)
+    {
+        <div style="display: flex; justify-content: center; align-items: center; height: 100vh;">
+            <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
+        </div>
+    }
+    else
+    {
+        <MudCard>
+            <MudCardContent>
+                <MudAvatar>
+                    <MudImage Src=@FileURL></MudImage>
+                </MudAvatar>
 
-<MudCard>
-    <MudCardContent>
+                <div style="height: 16px;"></div>
 
-        <MudAvatar>
-            <MudImage Src=@UserProfilImage></MudImage>
-        </MudAvatar>
+                <MudGrid>
+                    <MudItem xs="12" md="6">
+                        <MudField Label="User Name" Variant="Variant.Text"> @UserFamilyName @UserGivenName </MudField>
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudField Label="Email" Variant="Variant.Text"> @UserEmail </MudField>
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudTextField Label="Phone Number" Value="@UserPhone" />
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudField Label="Adress" Variant="Variant.Text"> @UserStreetName @UserStreetNumber, @UserZIPCode @UserCity, @UserCountry </MudField>
+                    </MudItem>
+                </MudGrid>
 
-        <div style="height: 16px;"></div>
+                <div style="height: 16px;"></div>
 
-        <MudGrid>
-            <MudItem xs="12" md="6">
-                <MudField Label="User Name" Variant="Variant.Text"> @UserFamilyName @UserGivenName </MudField>
-            </MudItem>
-            <MudItem xs="12" md="6">
-                <MudField Label="Email" Variant="Variant.Text"> @UserEmail </MudField>
-            </MudItem>
-            <MudItem xs="12" md="6">
-                <MudTextField Label="Phone Number" Value="@UserPhone" ReadOnly="true" />
-            </MudItem>
-            <MudItem xs="12" md="6">
-                <MudField Label="Adress" Variant="Variant.Text"> @UserStreetName @UserStreetNumber, @UserZIPCode @UserCity, @UserCountry </MudField>
-            </MudItem>
-        </MudGrid>
-
-        <div style="height: 16px;"></div>
-
-        <MudToolBar>
-            <MudSpacer /> @*Move content to right side*@
-            <MudIconButton OnClick="OpenUserDialogAsync" Color="Color.Secondary" Icon="@Icons.Material.Outlined.Edit" />
-        </MudToolBar>
-
-    </MudCardContent>
-</MudCard>
+                <MudToolBar>
+                    <MudSpacer /> @*Move content to right side*@
+                    <MudIconButton OnClick="OpenUserDialogAsync" Color="Color.Secondary" Icon="@Icons.Material.Outlined.Edit" />
+                </MudToolBar>
+            </MudCardContent>
+        </MudCard>
+    }
+</MudContainer>
 
 @code {
+    private string FileURL{ get; set; }
+
+    private bool isLoading = true;
+
     private int ID { get; set; }
-    private string UserFamilyName = "Fehr";
-    private string UserGivenName = "Benjamin";
-    private string? UserPhone = "+8615022143391";
-    private string? UserEmail = "benjamin.fehr@praewema.de";
-    private string? UserStreetName = "Dorfstrasse";
-    private string? UserStreetNumber = "84";
-    private string? UserZIPCode = "8454";
-    private string? UserCity = "Buchberg";
-    private string? UserCountry = "Switzerland";
-    private string UserProfilImage = "https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50";
+    private string UserFamilyName { get; set; }
+    private string UserGivenName { get; set; }
+    private string UserPhone { get; set; }
+    private string UserEmail { get; set; }
+    private string UserStreetName { get; set; }
+    private string UserStreetNumber { get; set; }
+    private string UserZIPCode { get; set; }
+    private string UserCity { get; set; }
+    private string UserCountry { get; set; }
 
     //supabase client
     private Supabase.Client supabase;
 
+    private ObservableCollection<UserModel> Users;
+
     protected async override void OnInitialized()
     {
         supabase = new Supabase.Client("https://uxgxzfhyhzhrjboxjcrz.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV4Z3h6Zmh5aHpocmpib3hqY3J6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjU0MTQ5NTIsImV4cCI6MjA0MDk5MDk1Mn0.cevff5000JUf4r0QE7Xij2viCdJhE-u1x8HbqPD8SK8");
-        await LoadUser();
+        Users = new ObservableCollection<UserModel>();
+        UserEmail = await SessionStorage.GetItemAsync<string>("useremail");
+        try
+        {
+            await LoadUser();
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
     }
 
     //Load user data inkl Profile picture
     private async Task LoadUser()
     {
-        //get the useremail from securestorage and then load all data from supabase where the useremail match
+
+        var user = await supabase.From<UserModel>()
+        .Where(x => x.UserEmail == UserEmail)
+        .Single(); // Retrieve a single user matching the condition
+
+        UserFamilyName = user.UserFamilyName;
+        UserGivenName = user.UserGivenName;
+        UserPhone = user.UserPhone;
+        UserEmail = user.UserEmail;
+        UserStreetName = user.UserStreetName;
+        UserStreetNumber = user.UserStreetNumber;
+        UserZIPCode = user.UserZIPCode;
+        UserCity = user.UserCity;
+        UserCountry = user.UserCountry;
+
+
+        //stream the user profile pic from supabase bucket
+        var bucketName = "UserProfilePic";
+        var fileName = UserEmail + ".png";
+
+        var storage = supabase.Storage;
+        var bucket = storage.From(bucketName);
+
+        // Get the public URL of the file
+        FileURL = bucket.GetPublicUrl(fileName);
+
+        StateHasChanged();
     }
 
     //User edit information button click open dialog where user can edit the strings and upload a picture
@@ -74,5 +124,19 @@
 	{
         var dialog = await DialogService.ShowAsync<UserDialog>("Edit User Informations");
         var result = await dialog.Result;
+	}
+
+    //clear all strings
+    private void Clear()
+	{
+		UserFamilyName = "";
+		UserGivenName = "";
+		UserPhone = "";
+		UserEmail = "";
+		UserStreetName = "";
+		UserStreetNumber = "";
+		UserZIPCode = "";
+		UserCity = "";
+		UserCountry = "";
 	}
 }
